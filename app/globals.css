@@ -2913,6 +2913,64 @@ span.token.table {
   border-left: 1px solid color-mix(in srgb, var(--text) 12%, transparent);
 }
 
+/* AutoSkill transcript Markdown: compact prose, flat inline code, and one
+   bordered code surface. Scoped to cards so file preview/custom panels keep
+   their existing typography. */
+.chat-message .markdown-body {
+  font-size: calc(14px + var(--chat-font-size-offset, 0px));
+  line-height: 1.58;
+  letter-spacing: -0.01em;
+}
+
+.chat-message .markdown-body p {
+  margin: 0 0 7px;
+}
+
+.chat-message .markdown-body ul,
+.chat-message .markdown-body ol {
+  margin-top: 4px;
+  margin-bottom: 7px;
+}
+
+.chat-message .markdown-body li {
+  margin: 2px 0;
+}
+
+.chat-message .markdown-body .markdown-inline-code {
+  padding: 2px 4px;
+  border: 0;
+  border-radius: 2px;
+  background: color-mix(in srgb, var(--text) 7%, transparent);
+  box-shadow: none;
+  font-size: 0.94em;
+}
+
+.chat-message .markdown-code-block {
+  margin: 7px 0;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--text) 4%, var(--bg));
+  box-shadow: none;
+}
+
+.chat-message .markdown-code-header {
+  min-height: 28px;
+  padding: 3px 10px;
+  background: color-mix(in srgb, var(--text) 3%, var(--bg-panel));
+}
+
+.chat-message .markdown-code-lang {
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.03em;
+  text-transform: lowercase;
+}
+
+.chat-message .markdown-code-block > pre {
+  padding: 12px 14px;
+  font-size: calc(13px + var(--chat-font-size-offset, 0px));
+  line-height: 1.5;
+}
+
 /* The turn's chips: model, files written, time, usage. */
 .chat-receipt {
   display: flex;
@@ -3092,6 +3150,7 @@ span.token.table {
 
 /* R2-2 step rows: neutral disclosure rails for thinking and tools. */
 /* R2-3 process digest summary keeps the AutoSkill one-line rhythm. */
+/* R2-4 markdown surfaces are transcript-scoped. */
 /* While the software keyboard is up (set by useViewportHeight), only a few
    hundred pixels remain above it. Hand them to the conversation: collapse the
    model/controls row, the extension status shelf and a fresh composer's
