@@ -2924,64 +2924,116 @@ span.token.table {
 }
 
 .chat-thinking-card {
-  border-color: color-mix(in srgb, var(--accent) 22%, var(--border)) !important;
-  border-radius: 7px !important;
-  background: color-mix(in srgb, var(--accent) 4%, var(--bg)) !important;
+  border: none !important;
+  border-left: 2px solid color-mix(in srgb, var(--text) 28%, transparent) !important;
+  border-radius: 0 !important;
+  background: transparent !important;
   color: var(--text-muted);
 }
 
 .chat-thinking-toggle {
-  color: var(--accent) !important;
+  color: var(--text-muted) !important;
+  text-align: left;
 }
 
-.chat-thinking-toggle > span:last-child {
-  color: var(--text-muted);
+.chat-thinking-toggle:hover {
+  color: var(--text) !important;
+}
+
+.chat-step-marker {
+  flex: 0 0 auto;
+  color: var(--text-dim);
+  font-size: 10px;
+  transition: transform 0.15s;
+}
+
+.chat-thinking-card:has(.chat-thinking-body) .chat-step-marker {
+  transform: rotate(90deg);
+}
+
+.chat-thinking-label {
+  flex: 0 0 auto;
+  color: var(--text);
+  font-weight: 600;
+}
+
+.chat-thinking-preview {
+  color: var(--text-dim);
+  font-family: var(--font-mono);
 }
 
 .chat-thinking-body {
-  color: var(--text-muted) !important;
-  font-size: calc(12px + var(--chat-font-size-offset, 0px));
-  line-height: 1.55;
+  color: var(--text) !important;
+  font-family: var(--font-ui, var(--font-sans, sans-serif));
+  font-size: calc(13px + var(--chat-font-size-offset, 0px));
+  line-height: 1.7;
+  padding: 6px 10px;
+  border-left: 1px solid var(--border);
+}
+
+.chat-step-duration {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-dim) !important;
 }
 
 .chat-tool-card {
-  border-radius: 7px !important;
-  border-color: color-mix(in srgb, var(--success, #16a34a) 28%, var(--border)) !important;
-  background: color-mix(in srgb, var(--success, #16a34a) 4%, var(--bg)) !important;
+  border: none !important;
+  border-left: 2px solid color-mix(in srgb, var(--text) 28%, transparent) !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  overflow: visible !important;
+  color: var(--text-muted);
+  margin: 2px 0;
 }
 
 .chat-tool-card-error {
-  border-color: color-mix(in srgb, var(--danger, #ef4444) 45%, var(--border)) !important;
-  background: color-mix(in srgb, var(--danger, #ef4444) 5%, var(--bg)) !important;
+  border-left-color: color-mix(in srgb, var(--danger, #ef4444) 65%, transparent) !important;
+}
+
+.chat-tool-card-success {
+  border-left-color: color-mix(in srgb, var(--text) 28%, transparent) !important;
 }
 
 .chat-tool-toggle {
-  padding: 7px 10px !important;
+  padding: 4px 6px !important;
   gap: 8px !important;
-  min-height: 31px;
+  min-height: 28px;
   color: var(--text-muted) !important;
+  border-radius: 6px !important;
 }
 
 .chat-tool-toggle:hover {
-  background: color-mix(in srgb, var(--success, #16a34a) 7%, transparent) !important;
+  background: color-mix(in srgb, var(--text) 5%, transparent) !important;
+}
+
+.chat-tool-toggle[aria-expanded="true"] > svg:last-child {
+  transform: rotate(180deg) !important;
 }
 
 .chat-tool-name {
-  color: var(--success, #16a34a) !important;
-  font-weight: 650 !important;
+  color: var(--text) !important;
+  font-weight: 600 !important;
+  font-size: 13px !important;
 }
 
 .chat-tool-preview {
   color: var(--text-dim) !important;
+  font-size: 12px !important;
 }
 
 .chat-tool-card pre {
-  border-top-color: color-mix(in srgb, var(--success, #16a34a) 25%, var(--border)) !important;
-  background: color-mix(in srgb, var(--tool-bg) 82%, var(--bg)) !important;
+  margin: 4px 0 4px 6px !important;
+  padding: 8px 10px !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 7px !important;
+  border-top-color: var(--border) !important;
+  background: color-mix(in srgb, var(--text) 4%, var(--bg)) !important;
+  color: var(--text-muted) !important;
 }
 
 .chat-tool-card-error pre {
-  border-top-color: color-mix(in srgb, var(--danger, #ef4444) 30%, var(--border)) !important;
+  border-color: color-mix(in srgb, var(--danger, #ef4444) 35%, var(--border)) !important;
 }
 
 .chat-tool-card > div > button:focus-visible,
@@ -2996,6 +3048,7 @@ span.token.table {
   }
 }
 
+/* R2-2 step rows: neutral disclosure rails for thinking and tools. */
 /* While the software keyboard is up (set by useViewportHeight), only a few
    hundred pixels remain above it. Hand them to the conversation: collapse the
    model/controls row, the extension status shelf and a fresh composer's

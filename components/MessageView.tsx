@@ -4,7 +4,6 @@ import { memo, useState, useRef, useEffect, useMemo } from "react";
 import ReactMarkdown from "react-markdown";
 import { MarkdownBody } from "./MarkdownBody";
 import { ImagePreview } from "./ImagePreview";
-import { ThinkingIcon } from "./ThinkingIcon";
 import { copyText } from "@/lib/clipboard";
 import { useI18n } from "@/hooks/useI18n";
 import { parseCompactionSummary } from "@/lib/compaction-summary";
@@ -1038,12 +1037,13 @@ export function ThinkingBlock({ block, duration, sessionId, entryId, blockIndex 
   return (
     <div className="chat-thinking-card" style={{
       display: "flex", alignItems: "flex-start", gap: 6, minWidth: 0,
-      border: "1px solid var(--border)",
-      borderRadius: 7,
-      padding: "6px 10px",
-      background: "var(--bg)",
+      border: "none",
+      borderLeft: "2px solid color-mix(in srgb, var(--text) 28%, transparent)",
+      borderRadius: 0,
+      padding: "2px 0 2px 8px",
+      background: "transparent",
       fontFamily: "var(--font-mono)",
-      fontSize: "calc(11px + var(--chat-font-size-offset, 0px))",
+      fontSize: "calc(12px + var(--chat-font-size-offset, 0px))",
       lineHeight: 1.5,
     }}>
       <button
@@ -1054,11 +1054,10 @@ export function ThinkingBlock({ block, duration, sessionId, entryId, blockIndex 
         title={t("i18n.thinking")}
         onClick={() => setExpanded((v) => !v)}
         style={{
-          display: "inline-flex",
+          display: "flex",
           alignItems: "center",
           gap: 6,
-          width: expanded ? 14 : "100%",
-          flexShrink: expanded ? 0 : 1,
+          flex: 1,
           minWidth: 0,
           minHeight: "1.5em",
           padding: 0,
@@ -1070,9 +1069,10 @@ export function ThinkingBlock({ block, duration, sessionId, entryId, blockIndex 
           textAlign: "left",
         }}
       >
-        <ThinkingIcon active={expanded} />
+        <span className="chat-step-marker" aria-hidden="true">▶</span>
+        <span className="chat-thinking-label">{t("i18n.thinking")}</span>
         {!expanded && (
-          <span style={{ minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+          <span className="chat-thinking-preview" style={{ minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
             {preview ? <ReactMarkdown allowedElements={[]} unwrapDisallowed skipHtml>{preview}</ReactMarkdown> : "..."}
           </span>
         )}
@@ -1088,11 +1088,11 @@ export function ThinkingBlock({ block, duration, sessionId, entryId, blockIndex 
             overflowWrap: "anywhere",
           }}
         >
-           {loading ? t("i18n.loadingThinking") : error ?? <ThinkingText text={(block.deferred ? content : block.thinking) ?? ""} />}
+          {loading ? t("i18n.loadingThinking") : error ?? <ThinkingText text={(block.deferred ? content : block.thinking) ?? ""} />}
         </div>
       )}
       {duration !== undefined && (
-        <span style={{ flexShrink: 0, color: "var(--text-dim)", fontVariantNumeric: "tabular-nums" }}>{duration}s</span>
+        <span className="chat-step-duration" style={{ flexShrink: 0, color: "var(--text-dim)", fontVariantNumeric: "tabular-nums" }}>{duration}s</span>
       )}
     </div>
   );
@@ -1178,6 +1178,8 @@ function ToolCallBlock({ block, result, duration, onOpenSubagent }: { block: Too
         <button
           className="chat-tool-toggle"
           onClick={toggleExpanded}
+          aria-expanded={expanded}
+          aria-label={mcpLabel ? `${mcpLabel.server}/${mcpLabel.tool}` : block.toolName}
           style={{
             display: "flex",
             alignItems: "center",
