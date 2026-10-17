@@ -3024,14 +3024,20 @@ span.token.table {
 }
 
 .chat-thinking-card {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto;
   border: none !important;
   border-left: 2px solid color-mix(in srgb, var(--text) 28%, transparent) !important;
   border-radius: 0 !important;
   background: transparent !important;
   color: var(--text-muted);
+  font-family: var(--font-ui, var(--font-sans, sans-serif)) !important;
 }
 
 .chat-thinking-toggle {
+  grid-column: 1;
+  grid-row: 1;
+  width: auto !important;
   color: var(--text-muted) !important;
   text-align: left;
 }
@@ -3063,6 +3069,9 @@ span.token.table {
 }
 
 .chat-thinking-body {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  min-width: 0;
   color: var(--text) !important;
   font-family: var(--font-ui, var(--font-sans, sans-serif));
   font-size: calc(13px + var(--chat-font-size-offset, 0px));
@@ -3072,6 +3081,9 @@ span.token.table {
 }
 
 .chat-step-duration {
+  grid-column: 2;
+  grid-row: 1;
+  align-self: center;
   font-family: var(--font-mono);
   font-size: 11px;
   color: var(--text-dim) !important;
@@ -3151,6 +3163,7 @@ span.token.table {
 /* R2-2 step rows: neutral disclosure rails for thinking and tools. */
 /* R2-3 process digest summary keeps the AutoSkill one-line rhythm. */
 /* R2-4 markdown surfaces are transcript-scoped. */
+/* Feedback fix: expanded thinking body sits below its summary row. */
 /* While the software keyboard is up (set by useViewportHeight), only a few
    hundred pixels remain above it. Hand them to the conversation: collapse the
    model/controls row, the extension status shelf and a fresh composer's
