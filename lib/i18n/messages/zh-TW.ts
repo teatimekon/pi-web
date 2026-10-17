@@ -516,6 +516,8 @@ export const zhTWLocale: LocalePlugin = {
     "settings.cacheMissNotices": "顯示快取與費用提示",
     "settings.cacheMissNoticesDescription": "即 pi 的 showCacheMissNotices：在對話中顯示快取未命中、快取預熱、壓縮費用，以及 Anthropic 捨棄思考區塊。儲存到全域 settings.json，專案的 .pi/settings.json 可以覆寫它。",
     "chat.filesWritten": "已變更的檔案",
+    "chat.you": "你",
+    "chat.tokenUsage": "Token 用量",
     "chat.openWrittenFile": "開啟 {name}",
     "chat.loadEarlier": "向上捲動以載入較早的訊息",
     "chat.scrollToLatest": "回到最新訊息",

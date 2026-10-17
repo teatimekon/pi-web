@@ -2722,56 +2722,205 @@ span.token.table {
   }
 }
 
-/* AutoSkill-inspired transcript skin. This is intentionally scoped to the
-   message renderer classes: the composer, sidebar and session chrome keep
-   pi-web's existing design and interaction contracts. */
+/* Transcript messages as AutoSkill draws them (apps/web/app/styles/shell/50-chat.css):
+   every message is a full-width card with a 2px left rule (accent for the
+   user, a neutral one for the assistant), a header row inside it (icon,
+   role, time on the right, icon actions) and, under an answer, a row of
+   chips. Sizes are AutoSkill's, scaled from its 15.75px body to the chat's
+   14px one; colors come from the pi theme so every palette keeps working. */
 .chat-message {
+  --chat-card-pad-y: 6px;
+  --chat-card-pad-x: 10px;
   min-width: 0;
-  width: 100%;
+  max-width: 100%;
+  margin-bottom: 8px;
+  padding: var(--chat-card-pad-y) var(--chat-card-pad-x);
+  border: 1px solid var(--border);
+  border-left-width: 2px;
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--text);
 }
 
 .chat-message-user {
-  align-items: flex-end;
+  border-left-color: color-mix(in srgb, var(--accent) 65%, transparent);
+  background: color-mix(in srgb, var(--accent) 7%, var(--bg));
 }
 
-.chat-user-bubble {
-  border-color: color-mix(in srgb, var(--accent) 20%, var(--border)) !important;
-  background: var(--user-bg) !important;
-  border-radius: 10px !important;
-  box-shadow: 0 1px 0 color-mix(in srgb, var(--accent) 8%, transparent);
-}
-
-.chat-user-bubble .markdown-body {
-  font-size: calc(14px + var(--chat-font-size-offset, 0px));
-  line-height: 1.6;
-}
-
-.chat-message-actions {
-  min-height: 22px;
+.chat-message-user.is-editing {
+  border-color: color-mix(in srgb, var(--accent) 62%, var(--bg));
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 16%, transparent);
 }
 
 .chat-message-assistant {
-  padding-inline: 2px;
+  border-left-color: color-mix(in srgb, var(--text) 28%, transparent);
 }
 
-.chat-assistant-meta {
-  min-height: 18px;
-  font-family: var(--font-mono);
-  letter-spacing: 0.01em;
+.chat-message-header {
+  display: flex;
+  align-items: center;
+  gap: 4px 8px;
+  min-height: 16px;
+  margin-bottom: 2px;
+  color: var(--text-dim);
+  font-size: calc(12px + var(--chat-font-size-offset, 0px));
+  line-height: 1.25;
+}
+
+.chat-message-header-meta {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: 4px 6px;
+  min-width: 0;
+}
+
+.chat-message-header-meta > svg {
+  flex-shrink: 0;
+  color: var(--text-muted);
+}
+
+.chat-message-role {
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+/* Last in the meta zone, so its auto margin alone sets the right edge. */
+.chat-message-time {
+  margin-left: auto;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.chat-message-actions {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 2px;
+}
+
+.chat-message-action {
+  display: inline-grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--text-dim);
+  cursor: pointer;
+  transition: color 0.12s, background-color 0.12s;
+}
+
+.chat-message-action:hover:not(:disabled) {
+  background: var(--bg-hover);
+  color: var(--text);
+}
+
+.chat-message-action.is-active {
+  color: var(--accent);
+}
+
+.chat-message-action:disabled {
+  cursor: default;
+}
+
+.chat-message-action-text {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 22px;
+  padding: 0 6px;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--accent);
+  font-size: 11px;
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.chat-message-action:focus-visible,
+.chat-message-action-text:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.chat-stream-rate {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+
+.chat-stream-tps {
+  margin-left: 4px;
+  padding: 1px 6px;
+  border-radius: 4px;
+  color: #fff;
+  font-size: 11px;
 }
 
 .chat-assistant-blocks {
-  gap: 10px !important;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
 }
 
-.chat-assistant-blocks > [data-message-text] > .markdown-body {
-  font-size: calc(14px + var(--chat-font-size-offset, 0px));
-  line-height: 1.68;
+/* The turn's chips: model, files written, time, usage. */
+.chat-receipt {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 6px;
+  margin-top: 6px;
+  min-width: 0;
 }
 
-.chat-assistant-footer {
-  min-height: 22px;
+.chat-receipt-files {
+  display: contents;
+}
+
+.chat-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  max-width: 100%;
+  min-width: 0;
+  padding: 2px 8px;
+  border: none;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--text) 7%, transparent);
+  color: var(--text-muted);
   font-family: var(--font-mono);
+  font-size: calc(12px + var(--chat-font-size-offset, 0px));
+  line-height: 1.4;
+}
+
+.chat-chip > svg,
+.chat-chip > .catppuccin-file-icon {
+  flex-shrink: 0;
+}
+
+.chat-chip-label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chat-chip-button {
+  cursor: pointer;
+  transition: background-color 0.12s, color 0.12s;
+}
+
+.chat-chip-button:hover {
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  color: var(--text);
 }
 
 .chat-thinking-card {
@@ -2842,14 +2991,8 @@ span.token.table {
 }
 
 @media (max-width: 640px) {
-  .chat-user-bubble {
-    max-width: 94% !important;
-  }
-  .chat-message-assistant {
-    padding-inline: 0;
-  }
-  .chat-tool-toggle {
-    padding-inline: 8px !important;
+  .chat-message {
+    --chat-card-pad-x: 8px;
   }
 }
 

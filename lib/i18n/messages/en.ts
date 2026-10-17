@@ -516,6 +516,8 @@ export const enLocale: LocalePlugin = {
     "settings.cacheMissNotices": "Show cache and cost notices",
     "settings.cacheMissNoticesDescription": "pi's showCacheMissNotices: cache misses, cache warming, compaction cost and Anthropic dropping thinking blocks, in the chat. Saved to the global settings.json; a project's .pi/settings.json can override it.",
     "chat.filesWritten": "Files changed",
+    "chat.you": "You",
+    "chat.tokenUsage": "Token usage",
     "chat.openWrittenFile": "Open {name}",
     "chat.loadEarlier": "Scroll up to load earlier messages",
     "chat.scrollToLatest": "Scroll to latest",
