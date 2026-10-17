@@ -2871,6 +2871,48 @@ span.token.table {
   min-width: 0;
 }
 
+.chat-process-group {
+  margin-top: 2px;
+  min-width: 0;
+}
+
+.chat-process-summary {
+  display: flex !important;
+  align-items: center;
+  gap: 8px !important;
+  width: 100% !important;
+  min-width: 0;
+  min-height: 28px !important;
+  padding: 4px 6px !important;
+  border-radius: 6px !important;
+  color: var(--text-muted) !important;
+  font-family: var(--font-ui, var(--font-sans, sans-serif));
+  font-size: calc(13px + var(--chat-font-size-offset, 0px)) !important;
+  line-height: 1.4;
+}
+
+.chat-process-summary:hover {
+  background: color-mix(in srgb, var(--text) 5%, transparent) !important;
+  color: var(--text) !important;
+}
+
+.chat-process-summary > svg {
+  flex-shrink: 0;
+}
+
+.chat-process-summary > span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chat-process-group > div {
+  margin-top: 3px !important;
+  padding-left: 8px;
+  border-left: 1px solid color-mix(in srgb, var(--text) 12%, transparent);
+}
+
 /* The turn's chips: model, files written, time, usage. */
 .chat-receipt {
   display: flex;
@@ -3049,6 +3091,7 @@ span.token.table {
 }
 
 /* R2-2 step rows: neutral disclosure rails for thinking and tools. */
+/* R2-3 process digest summary keeps the AutoSkill one-line rhythm. */
 /* While the software keyboard is up (set by useViewportHeight), only a few
    hundred pixels remain above it. Hand them to the conversation: collapse the
    model/controls row, the extension status shelf and a fresh composer's
