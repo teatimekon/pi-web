@@ -416,12 +416,14 @@ function UserMessageView({ message, cwd, onOpenFile, entryId, onFork, forking, o
 
   return (
     <div
+      className="chat-message chat-message-user"
       style={{ marginBottom: 16, display: "flex", flexDirection: "column", alignItems: "flex-end" }}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
       <div style={{ display: "flex", alignItems: "flex-end", gap: 6, maxWidth: "85%" }}>
         <div
+          className="chat-user-bubble"
           style={{
             flex: 1,
             minWidth: 0,
@@ -509,7 +511,7 @@ function UserMessageView({ message, cwd, onOpenFile, entryId, onFork, forking, o
 
       {/* Bottom row: action buttons + timestamp */}
       {(time || canFork || canEdit || true) && (
-        <div style={{
+        <div className="chat-message-actions" style={{
           display: "flex", alignItems: "center", justifyContent: "flex-end",
           gap: 6, marginTop: 3,
         }}>
@@ -813,6 +815,7 @@ function AssistantMessageView({
 
   return (
     <div
+      className="chat-message chat-message-assistant"
       data-message-role="assistant"
       data-entry-id={entryId}
       style={{ marginBottom: 16 }}
@@ -821,6 +824,7 @@ function AssistantMessageView({
     >
       {/* Model label */}
       <div
+        className="chat-assistant-meta"
         style={{
           fontSize: 11,
           color: "var(--text-dim)",
@@ -861,7 +865,7 @@ function AssistantMessageView({
         })()}
       </div>
 
-      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+      <div className="chat-assistant-blocks" style={{ display: "flex", flexDirection: "column", gap: 8 }}>
         {/* Not keyed by the entry id: a message of this run gets one when the file is
             read again, and its blocks keep their state across that read (#1184). */}
         {blockItems.map(({ block, originalIndex }) => (
@@ -938,7 +942,7 @@ function AssistantMessageView({
         <TurnWrittenFiles files={writtenFiles} onOpenFile={onOpenFile} />
       )}
 
-      <div style={{
+      <div className="chat-assistant-footer" style={{
         display: "flex", alignItems: "center", gap: 8, marginTop: 4,
       }}>
         {(message.usage || turnDurationMs !== undefined) && !isStreaming && (
@@ -1088,7 +1092,7 @@ export function ThinkingBlock({ block, duration, sessionId, entryId, blockIndex 
   }, [expanded, block.deferred, content, sessionId, entryId, blockIndex]);
 
   return (
-    <div style={{
+    <div className="chat-thinking-card" style={{
       display: "flex", alignItems: "flex-start", gap: 6, minWidth: 0,
       border: "1px solid var(--border)",
       borderRadius: 7,
@@ -1100,6 +1104,7 @@ export function ThinkingBlock({ block, duration, sessionId, entryId, blockIndex 
     }}>
       <button
         type="button"
+        className="chat-thinking-toggle"
         aria-expanded={expanded}
         aria-label={`${t("i18n.thinking")}${preview ? `: ${preview}` : ""}`}
         title={t("i18n.thinking")}
@@ -1130,6 +1135,7 @@ export function ThinkingBlock({ block, duration, sessionId, entryId, blockIndex 
       </button>
       {expanded && (
         <div
+          className="chat-thinking-body"
           style={{
             flex: 1,
             minWidth: 0,
@@ -1214,6 +1220,7 @@ function ToolCallBlock({ block, result, duration, onOpenSubagent }: { block: Too
 
   return (
     <div
+      className={`chat-tool-card ${isError ? "chat-tool-card-error" : "chat-tool-card-success"}`}
       style={{
         borderRadius: 7,
         overflow: "hidden",
@@ -1225,6 +1232,7 @@ function ToolCallBlock({ block, result, duration, onOpenSubagent }: { block: Too
       {/* ── Tool call header ── */}
       <div style={{ display: "flex", alignItems: "stretch", minWidth: 0 }}>
         <button
+          className="chat-tool-toggle"
           onClick={toggleExpanded}
           style={{
             display: "flex",
@@ -1242,6 +1250,7 @@ function ToolCallBlock({ block, result, duration, onOpenSubagent }: { block: Too
           }}
         >
           <span
+            className="chat-tool-name"
             title={mcpLabel ? block.toolName : undefined}
             style={{ color: isError ? "#f87171" : "#16a34a", fontFamily: "var(--font-mono)", fontWeight: 600, fontSize: 11, flexShrink: 0 }}
           >
@@ -1252,7 +1261,7 @@ function ToolCallBlock({ block, result, duration, onOpenSubagent }: { block: Too
               </>
             ) : block.toolName}
           </span>
-          <span style={{ color: "var(--text-dim)", fontFamily: "var(--font-mono)", fontSize: 11, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flex: 1, minWidth: 0 }}>
+          <span className="chat-tool-preview" style={{ color: "var(--text-dim)", fontFamily: "var(--font-mono)", fontSize: 11, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flex: 1, minWidth: 0 }}>
             {isStreamingInput
               ? t("chat.generatingToolInput")
               : (patchLabel ?? (codemode ? codemodeScriptPreview(codemode.code) : getToolPreview(block)))}

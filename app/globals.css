@@ -2722,6 +2722,137 @@ span.token.table {
   }
 }
 
+/* AutoSkill-inspired transcript skin. This is intentionally scoped to the
+   message renderer classes: the composer, sidebar and session chrome keep
+   pi-web's existing design and interaction contracts. */
+.chat-message {
+  min-width: 0;
+  width: 100%;
+}
+
+.chat-message-user {
+  align-items: flex-end;
+}
+
+.chat-user-bubble {
+  border-color: color-mix(in srgb, var(--accent) 20%, var(--border)) !important;
+  background: var(--user-bg) !important;
+  border-radius: 10px !important;
+  box-shadow: 0 1px 0 color-mix(in srgb, var(--accent) 8%, transparent);
+}
+
+.chat-user-bubble .markdown-body {
+  font-size: calc(14px + var(--chat-font-size-offset, 0px));
+  line-height: 1.6;
+}
+
+.chat-message-actions {
+  min-height: 22px;
+}
+
+.chat-message-assistant {
+  padding-inline: 2px;
+}
+
+.chat-assistant-meta {
+  min-height: 18px;
+  font-family: var(--font-mono);
+  letter-spacing: 0.01em;
+}
+
+.chat-assistant-blocks {
+  gap: 10px !important;
+}
+
+.chat-assistant-blocks > [data-message-text] > .markdown-body {
+  font-size: calc(14px + var(--chat-font-size-offset, 0px));
+  line-height: 1.68;
+}
+
+.chat-assistant-footer {
+  min-height: 22px;
+  font-family: var(--font-mono);
+}
+
+.chat-thinking-card {
+  border-color: color-mix(in srgb, var(--accent) 22%, var(--border)) !important;
+  border-radius: 7px !important;
+  background: color-mix(in srgb, var(--accent) 4%, var(--bg)) !important;
+  color: var(--text-muted);
+}
+
+.chat-thinking-toggle {
+  color: var(--accent) !important;
+}
+
+.chat-thinking-toggle > span:last-child {
+  color: var(--text-muted);
+}
+
+.chat-thinking-body {
+  color: var(--text-muted) !important;
+  font-size: calc(12px + var(--chat-font-size-offset, 0px));
+  line-height: 1.55;
+}
+
+.chat-tool-card {
+  border-radius: 7px !important;
+  border-color: color-mix(in srgb, var(--success, #16a34a) 28%, var(--border)) !important;
+  background: color-mix(in srgb, var(--success, #16a34a) 4%, var(--bg)) !important;
+}
+
+.chat-tool-card-error {
+  border-color: color-mix(in srgb, var(--danger, #ef4444) 45%, var(--border)) !important;
+  background: color-mix(in srgb, var(--danger, #ef4444) 5%, var(--bg)) !important;
+}
+
+.chat-tool-toggle {
+  padding: 7px 10px !important;
+  gap: 8px !important;
+  min-height: 31px;
+  color: var(--text-muted) !important;
+}
+
+.chat-tool-toggle:hover {
+  background: color-mix(in srgb, var(--success, #16a34a) 7%, transparent) !important;
+}
+
+.chat-tool-name {
+  color: var(--success, #16a34a) !important;
+  font-weight: 650 !important;
+}
+
+.chat-tool-preview {
+  color: var(--text-dim) !important;
+}
+
+.chat-tool-card pre {
+  border-top-color: color-mix(in srgb, var(--success, #16a34a) 25%, var(--border)) !important;
+  background: color-mix(in srgb, var(--tool-bg) 82%, var(--bg)) !important;
+}
+
+.chat-tool-card-error pre {
+  border-top-color: color-mix(in srgb, var(--danger, #ef4444) 30%, var(--border)) !important;
+}
+
+.chat-tool-card > div > button:focus-visible,
+.chat-thinking-toggle:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+@media (max-width: 640px) {
+  .chat-user-bubble {
+    max-width: 94% !important;
+  }
+  .chat-message-assistant {
+    padding-inline: 0;
+  }
+  .chat-tool-toggle {
+    padding-inline: 8px !important;
+  }
+}
+
 /* While the software keyboard is up (set by useViewportHeight), only a few
    hundred pixels remain above it. Hand them to the conversation: collapse the
    model/controls row, the extension status shelf and a fresh composer's
