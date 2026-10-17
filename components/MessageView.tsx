@@ -4,7 +4,6 @@ import { memo, useState, useRef, useEffect, useMemo } from "react";
 import ReactMarkdown from "react-markdown";
 import { MarkdownBody } from "./MarkdownBody";
 import { ImagePreview } from "./ImagePreview";
-import { ThinkingIcon } from "./ThinkingIcon";
 import { copyText } from "@/lib/clipboard";
 import { useI18n } from "@/hooks/useI18n";
 import { parseCompactionSummary } from "@/lib/compaction-summary";
@@ -252,6 +251,137 @@ function formatTime(ts?: number): string | null {
   return `${date} ${time}`;
 }
 
+function UserIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <circle cx="12" cy="8" r="5" />
+      <path d="M20 21a8 8 0 0 0-16 0" />
+    </svg>
+  );
+}
+
+function AssistantIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M12 8V4H8" />
+      <rect width="16" height="12" x="4" y="8" rx="2" />
+      <path d="M2 14h2M20 14h2M15 13v2M9 13v2" />
+    </svg>
+  );
+}
+
+function CopyIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+    </svg>
+  );
+}
+
+function CheckIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <polyline points="20 6 9 17 4 12" />
+    </svg>
+  );
+}
+
+function EditFromHereIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <polyline points="15 10 20 15 15 20" />
+      <path d="M4 4v7a4 4 0 0 0 4 4h12" />
+    </svg>
+  );
+}
+
+function ForkIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <line x1="6" y1="3" x2="6" y2="15" />
+      <circle cx="18" cy="6" r="3" />
+      <circle cx="6" cy="18" r="3" />
+      <path d="M18 9a9 9 0 0 1-9 9" />
+    </svg>
+  );
+}
+
+/** A message card's first row, as AutoSkill draws it: who, then the time on the right, then icon actions. */
+export function MessageHeader({ role, label, time, meta, actions }: {
+  role: "user" | "assistant";
+  label?: string;
+  time?: string | null;
+  meta?: React.ReactNode;
+  actions?: React.ReactNode;
+}) {
+  return (
+    <div className="chat-message-header">
+      <div className="chat-message-header-meta">
+        {role === "user" ? <UserIcon /> : <AssistantIcon />}
+        {label && <span className="chat-message-role">{label}</span>}
+        {meta}
+        {time && <span className="chat-message-time">{time}</span>}
+      </div>
+      {actions && <div className="chat-message-actions">{actions}</div>}
+    </div>
+  );
+}
+
+function HeaderAction({ label, active, disabled, onClick, children }: {
+  label: string;
+  active?: boolean;
+  disabled?: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      className={`chat-message-action${active ? " is-active" : ""}`}
+      title={label}
+      aria-label={label}
+      disabled={disabled}
+      onClick={onClick}
+    >
+      {children}
+    </button>
+  );
+}
+
+/** The chips under a turn's answer: model, files written, the turn's time, token usage. */
+function MessageReceipt({ modelLabel, writtenFiles, onOpenFile, turnDurationMs, usage }: {
+  modelLabel: string | null;
+  writtenFiles?: WrittenFile[];
+  onOpenFile?: (filePath: string, page?: number) => void;
+  turnDurationMs?: number;
+  usage?: AssistantMessage["usage"];
+}) {
+  const { t } = useI18n();
+  const usageText = usage ? formatUsage(usage) : "";
+  if (!modelLabel && !writtenFiles?.length && turnDurationMs === undefined && !usageText) return null;
+  return (
+    <div className="chat-receipt">
+      {modelLabel && (
+        <span className="chat-chip" title={modelLabel}><span className="chat-chip-label">{modelLabel}</span></span>
+      )}
+      {writtenFiles && writtenFiles.length > 0 && <TurnWrittenFiles files={writtenFiles} onOpenFile={onOpenFile} />}
+      {turnDurationMs !== undefined && (
+        <span className="chat-chip">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <circle cx="12" cy="13" r="8" />
+            <path d="M12 9v4l2 2M10 2h4" />
+          </svg>
+          <span className="chat-chip-label">{t("chat.turnDuration", { time: formatTurnDuration(turnDurationMs) })}</span>
+        </span>
+      )}
+      {usageText && (
+        <span className="chat-chip" title={t("chat.tokenUsage")}><span className="chat-chip-label">{usageText}</span></span>
+      )}
+    </div>
+  );
+}
+
 export function replaceUserMessageText(message: UserMessage, text: string): UserMessage {
   if (typeof message.content === "string") return { ...message, content: text };
 
@@ -343,7 +473,6 @@ function UserMessageView({ message, cwd, onOpenFile, entryId, onFork, forking, o
   isEditing?: boolean;
 }) {
   const { t } = useI18n();
-  const [hovered, setHovered] = useState(false);
   const [copied, setCopied] = useState(false);
   const [expanded, setExpanded] = useState(false);
 
@@ -415,228 +544,109 @@ function UserMessageView({ message, cwd, onOpenFile, entryId, onFork, forking, o
   };
 
   return (
-    <div
-      style={{ marginBottom: 16, display: "flex", flexDirection: "column", alignItems: "flex-end" }}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-    >
-      <div style={{ display: "flex", alignItems: "flex-end", gap: 6, maxWidth: "85%" }}>
-        <div
-          style={{
-            flex: 1,
-            minWidth: 0,
-            background: isEditing ? "color-mix(in srgb, var(--accent) 14%, var(--user-bg))" : "var(--user-bg)",
-            border: isEditing ? "1px solid color-mix(in srgb, var(--accent) 62%, var(--user-bg))" : "1px solid rgba(59,130,246,0.2)",
-            boxShadow: isEditing ? "0 0 0 2px color-mix(in srgb, var(--accent) 16%, transparent)" : undefined,
-            borderRadius: 12,
-            padding: "8px 12px",
-            fontSize: "calc(14px + var(--chat-font-size-offset, 0px))",
-            lineHeight: 1.6,
-            color: "var(--text)",
-            wordBreak: "break-word",
-            maxHeight: USER_BUBBLE_MAX_HEIGHT,
-            overflowY: "auto",
-          }}
-        >
-          {commandText ? (
-            <div style={{ display: "flex", flexDirection: "column", gap: 6, minWidth: 0 }}>
-              {imageBlocksNode}
-              <div style={{ display: "flex", alignItems: "flex-start", gap: 8, flexWrap: "wrap" }}>
-                <button
-                  onClick={() => setExpanded((prev) => !prev)}
-                  title={expanded ? t("i18n.collapse") : t("i18n.expand")}
-                  aria-expanded={expanded}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 6,
-                    flexShrink: 0,
-                    padding: 0,
-                    background: "none",
-                    border: "none",
-                    cursor: "pointer",
-                    color: "var(--accent)",
-                    fontFamily: "var(--font-mono)",
-                    fontSize: "calc(13px + var(--chat-font-size-offset, 0px))",
-                    textAlign: "left",
-                  }}
-                >
-                  <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                    {commandName}
-                  </span>
-                  <svg
-                    width="11"
-                    height="11"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    style={{ flexShrink: 0, opacity: 0.75, transform: expanded ? "rotate(180deg)" : "none", transition: "transform 0.15s" }}
-                    aria-hidden="true"
-                  >
-                    <polyline points="6 9 12 15 18 9" />
-                  </svg>
-                </button>
-                {commandArgs && (
-                  <span style={{
-                    color: "var(--text)",
-                    fontSize: "calc(14px + var(--chat-font-size-offset, 0px))",
-                    lineHeight: 1.6,
-                    whiteSpace: "pre-wrap",
-                    wordBreak: "break-word",
-                    minWidth: 0,
-                    flex: 1,
-                  }}>
-                    {commandArgs}
-                  </span>
-                )}
-              </div>
-              {expanded && (
-                <MarkdownBody className="markdown-user-message" keepLineBreaks cwd={cwd} onOpenFile={onOpenFile}>{content}</MarkdownBody>
-              )}
-            </div>
-          ) : (
+    <div className={`chat-message chat-message-user${isEditing ? " is-editing" : ""}`}>
+      <MessageHeader
+        role="user"
+        label={t("chat.you")}
+        time={time}
+        actions={(
           <>
-          {imageBlocksNode}
-          {content && <SafeMarkdownBody className="markdown-user-message" keepLineBreaks cwd={cwd} onOpenFile={onOpenFile}>{content}</SafeMarkdownBody>}
+            <HeaderAction label={copied ? t("i18n.copied") : t("i18n.copyMessage")} active={copied} onClick={copyContent}>
+              {copied ? <CheckIcon /> : <CopyIcon />}
+            </HeaderAction>
+            {canEdit && !canCancelEdit && (
+              <HeaderAction label={t("i18n.editFromHereTitle")} onClick={() => onEditContent!(editTarget, entryId!)}>
+                <EditFromHereIcon />
+              </HeaderAction>
+            )}
+            {canFork && (
+              <HeaderAction
+                label={forking ? t("i18n.creatingSession") : t("i18n.newSessionTitle")}
+                active={forking}
+                disabled={forking}
+                onClick={() => onFork!(entryId!)}
+              >
+                <ForkIcon />
+              </HeaderAction>
+            )}
+            {canCancelEdit && (
+              <button type="button" className="chat-message-action-text" onClick={onCancelEdit} title={t("i18n.cancel")} aria-label={t("i18n.cancel")}>
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+                  <path d="M6 6l12 12M18 6L6 18" />
+                </svg>
+                {t("i18n.cancel")}
+              </button>
+            )}
           </>
-          )}
-        </div>
-
-      </div>
-
-      {/* Bottom row: action buttons + timestamp */}
-      {(time || canFork || canEdit || true) && (
-        <div style={{
-          display: "flex", alignItems: "center", justifyContent: "flex-end",
-          gap: 6, marginTop: 3,
-        }}>
-          <div style={{
-            display: "flex", gap: 3,
-            opacity: hovered ? 1 : 0,
-            pointerEvents: hovered ? "auto" : "none",
-            transition: "opacity 0.12s",
-          }}>
-            <button
-              onClick={copyContent}
-               title={t("i18n.copyMessage")}
-              style={{
-                display: "flex", alignItems: "center", gap: 4,
-                padding: "3px 8px", height: 22,
-                background: "none", border: "none",
-                borderRadius: 5,
-                color: copied ? "var(--accent)" : "var(--text-dim)",
-                cursor: "pointer",
-                fontSize: 11, fontWeight: 400,
-                whiteSpace: "nowrap",
-                transition: "color 0.12s",
-              }}
-              onMouseEnter={(e) => { if (!copied) e.currentTarget.style.color = "var(--accent)"; }}
-              onMouseLeave={(e) => { if (!copied) e.currentTarget.style.color = "var(--text-dim)"; }}
-            >
-              {copied ? (
-                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                  <polyline points="20 6 9 17 4 12" />
+        )}
+      />
+      <div className="chat-user-body" style={{ maxHeight: USER_BUBBLE_MAX_HEIGHT, overflowY: "auto", wordBreak: "break-word" }}>
+        {commandText ? (
+          <div style={{ display: "flex", flexDirection: "column", gap: 6, minWidth: 0 }}>
+            {imageBlocksNode}
+            <div style={{ display: "flex", alignItems: "flex-start", gap: 8, flexWrap: "wrap" }}>
+              <button
+                onClick={() => setExpanded((prev) => !prev)}
+                title={expanded ? t("i18n.collapse") : t("i18n.expand")}
+                aria-expanded={expanded}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 6,
+                  flexShrink: 0,
+                  padding: 0,
+                  background: "none",
+                  border: "none",
+                  cursor: "pointer",
+                  color: "var(--accent)",
+                  fontFamily: "var(--font-mono)",
+                  fontSize: "calc(13px + var(--chat-font-size-offset, 0px))",
+                  textAlign: "left",
+                }}
+              >
+                <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                  {commandName}
+                </span>
+                <svg
+                  width="11"
+                  height="11"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  style={{ flexShrink: 0, opacity: 0.75, transform: expanded ? "rotate(180deg)" : "none", transition: "transform 0.15s" }}
+                  aria-hidden="true"
+                >
+                  <polyline points="6 9 12 15 18 9" />
                 </svg>
-              ) : (
-                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
-                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
-                </svg>
-              )}
-               {copied ? t("i18n.copied") : t("i18n.copy")}
-            </button>
-          </div>
-          {(canFork || canEdit || canCancelEdit) && (
-            <div style={{
-              display: "flex", gap: 3,
-              opacity: (hovered || forking || canCancelEdit) ? 1 : 0,
-              pointerEvents: (hovered || forking || canCancelEdit) ? "auto" : "none",
-              transition: "opacity 0.12s",
-            }}>
-              {canEdit && !canCancelEdit && (
-                <button
-                  onClick={() => onEditContent!(editTarget, entryId!)}
-                   title={t("i18n.editFromHereTitle")}
-                  style={{
-                    display: "flex", alignItems: "center", gap: 4,
-                    padding: "3px 8px", height: 22,
-                    background: "none", border: "none",
-                    borderRadius: 5,
-                    color: "var(--text-dim)",
-                    cursor: "pointer",
-                    fontSize: 11, fontWeight: 400,
-                    whiteSpace: "nowrap",
-                    transition: "color 0.12s",
-                  }}
-                  onMouseEnter={(e) => { e.currentTarget.style.color = "var(--accent)"; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.color = "var(--text-dim)"; }}
-                >
-                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                    <polyline points="15 10 20 15 15 20" />
-                    <path d="M4 4v7a4 4 0 0 0 4 4h12" />
-                  </svg>
-                   {t("i18n.editFromHere")}
-                </button>
-              )}
-              {canCancelEdit && (
-                <button
-                  type="button"
-                  onClick={onCancelEdit}
-                  title={t("i18n.cancel")}
-                  aria-label={t("i18n.cancel")}
-                  style={{
-                    display: "flex", alignItems: "center", gap: 4,
-                    padding: "3px 8px", height: 22,
-                    background: "none", border: "none",
-                    borderRadius: 5,
-                    color: "var(--accent)",
-                    cursor: "pointer",
-                    fontSize: 11, fontWeight: 500,
-                    whiteSpace: "nowrap",
-                  }}
-                >
-                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
-                    <path d="M6 6l12 12M18 6L6 18" />
-                  </svg>
-                  {t("i18n.cancel")}
-                </button>
-              )}
-              {canFork && (
-                <button
-                  onClick={() => { onFork!(entryId!); }}
-                  disabled={forking}
-                   title={forking ? t("i18n.creatingSession") : t("i18n.newSessionTitle")}
-                  style={{
-                    display: "flex", alignItems: "center", gap: 4,
-                    padding: "3px 8px", height: 22,
-                    background: "none", border: "none",
-                    borderRadius: 5,
-                    color: forking ? "var(--accent)" : "var(--text-dim)",
-                    cursor: forking ? "not-allowed" : "pointer",
-                    fontSize: 11, fontWeight: 400,
-                    whiteSpace: "nowrap",
-                    transition: "color 0.12s",
-                  }}
-                  onMouseEnter={(e) => { if (!forking) e.currentTarget.style.color = "var(--accent)"; }}
-                  onMouseLeave={(e) => { if (!forking) e.currentTarget.style.color = "var(--text-dim)"; }}
-                >
-                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                    <line x1="6" y1="3" x2="6" y2="15" />
-                    <circle cx="18" cy="6" r="3" />
-                    <circle cx="6" cy="18" r="3" />
-                    <path d="M18 9a9 9 0 0 1-9 9" />
-                  </svg>
-                   {forking ? t("i18n.creating") : t("i18n.newSession")}
-                </button>
+              </button>
+              {commandArgs && (
+                <span style={{
+                  color: "var(--text)",
+                  fontSize: "calc(14px + var(--chat-font-size-offset, 0px))",
+                  lineHeight: 1.6,
+                  whiteSpace: "pre-wrap",
+                  wordBreak: "break-word",
+                  minWidth: 0,
+                  flex: 1,
+                }}>
+                  {commandArgs}
+                </span>
               )}
             </div>
-          )}
-          {time && <span style={{ fontSize: 10, color: "var(--text-dim)" }}>{time}</span>}
-        </div>
-      )}
+            {expanded && (
+              <MarkdownBody className="markdown-user-message" keepLineBreaks cwd={cwd} onOpenFile={onOpenFile}>{content}</MarkdownBody>
+            )}
+          </div>
+        ) : (
+        <>
+        {imageBlocksNode}
+        {content && <SafeMarkdownBody className="markdown-user-message" keepLineBreaks cwd={cwd} onOpenFile={onOpenFile}>{content}</SafeMarkdownBody>}
+        </>
+        )}
+      </div>
     </div>
   );
 }
@@ -687,7 +697,6 @@ function AssistantMessageView({
   const providerError = getAssistantErrorMessage(message, { isStreaming });
   const truncated = isAssistantTruncated(message, { isStreaming });
   const unansweredTruncation = truncated && !hasAssistantAnswer(message);
-  const [hovered, setHovered] = useState(false);
   const [copied, setCopied] = useState(false);
   const streamStartRef = useRef<StreamRateStart | null>(null);
   const rateKey = streamRateKey(message);
@@ -811,57 +820,40 @@ function AssistantMessageView({
 
   if (blocks.length === 0 && !isStreaming && !providerError && !truncated) return null;
 
+  const modelLabel = message.provider ? getModelDisplayName(message.provider, message.model, modelNames) : null;
+  const estimatedTokenCount = Math.round(estimatedTokens);
+  const streamMeta = isStreaming && estimatedTokenCount > 0 ? (
+    <span className="chat-stream-rate" title={t("i18n.estimatedTokens")}>
+      <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        <line x1="5" y1="1.5" x2="5" y2="8.5" /><polyline points="2 6 5 8.5 8 6" />
+      </svg>
+      {estimatedTokenCount}
+      {tps !== null && (
+        <span className="chat-stream-tps" style={{ background: tps >= 50 ? "#53b3cb" : tps >= 30 ? "#9bc53d" : tps >= 15 ? "#f9c22e" : "#e01a4f" }}>
+          {tps.toFixed(1)} t/s
+        </span>
+      )}
+    </span>
+  ) : null;
+
   return (
     <div
+      className="chat-message chat-message-assistant"
       data-message-role="assistant"
       data-entry-id={entryId}
-      style={{ marginBottom: 16 }}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
     >
-      {/* Model label */}
-      <div
-        style={{
-          fontSize: 11,
-          color: "var(--text-dim)",
-          marginBottom: 4,
-          display: "flex",
-          alignItems: "center",
-          gap: 6,
-        }}
-      >
-        {message.provider && (
-          <span>{getModelDisplayName(message.provider, message.model, modelNames)}</span>
-        )}
-        {isStreaming && (() => {
-          const est = Math.round(estimatedTokens);
-          return (
-            <>
+      <MessageHeader
+        role="assistant"
+        time={isStreaming ? null : time}
+        meta={streamMeta}
+        actions={textContent && !isStreaming ? (
+          <HeaderAction label={copied ? t("i18n.copied") : t("i18n.copyMessage")} active={copied} onClick={copyContent}>
+            {copied ? <CheckIcon /> : <CopyIcon />}
+          </HeaderAction>
+        ) : undefined}
+      />
 
-              {est > 0 && (
-                <span style={{ display: "flex", alignItems: "center", gap: 4, color: "var(--text)" }} title={t("i18n.estimatedTokens")}>
-                  <span style={{ display: "flex", alignItems: "center", gap: 2, fontSize: 11, fontWeight: 400 }}>
-                    <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round">
-                      <line x1="5" y1="1.5" x2="5" y2="8.5" /><polyline points="2 6 5 8.5 8 6" />
-                    </svg>
-                    {est}
-                  </span>
-                  {tps !== null && (() => {
-                    const bg = tps >= 50 ? "#53b3cb" : tps >= 30 ? "#9bc53d" : tps >= 15 ? "#f9c22e" : "#e01a4f";
-                    return (
-                      <span style={{ marginLeft: 6, padding: "1px 6px", borderRadius: 4, background: bg, color: "#fff", fontSize: 11, fontWeight: 400 }}>
-                        {tps.toFixed(1)} t/s
-                      </span>
-                    );
-                  })()}
-                </span>
-              )}
-            </>
-          );
-        })()}
-      </div>
-
-      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+      <div className="chat-assistant-blocks" style={{ display: "flex", flexDirection: "column", gap: 8 }}>
         {/* Not keyed by the entry id: a message of this run gets one when the file is
             read again, and its blocks keep their state across that read (#1184). */}
         {blockItems.map(({ block, originalIndex }) => (
@@ -934,58 +926,13 @@ function AssistantMessageView({
         </div>
       )}
 
-      {writtenFiles && writtenFiles.length > 0 && (
-        <TurnWrittenFiles files={writtenFiles} onOpenFile={onOpenFile} />
-      )}
-
-      <div style={{
-        display: "flex", alignItems: "center", gap: 8, marginTop: 4,
-      }}>
-        {(message.usage || turnDurationMs !== undefined) && !isStreaming && (
-          <div style={{ fontSize: 11, color: "var(--text-dim)" }}>
-            {[
-              message.usage ? formatUsage(message.usage) : null,
-              turnDurationMs !== undefined ? t("chat.turnDuration", { time: formatTurnDuration(turnDurationMs) }) : null,
-            ].filter(Boolean).join(" \u00b7 ")}
-          </div>
-        )}
-        {textContent && !isStreaming && (
-          <button
-            onClick={copyContent}
-             title={t("i18n.copyMessage")}
-            style={{
-              display: "flex", alignItems: "center", gap: 4,
-              padding: "3px 8px", height: 22,
-              background: "none", border: "none",
-              borderRadius: 5,
-              color: copied ? "var(--accent)" : "var(--text-dim)",
-              cursor: "pointer",
-              fontSize: 11, fontWeight: 400,
-              whiteSpace: "nowrap",
-              opacity: hovered ? 1 : 0,
-              pointerEvents: hovered ? "auto" : "none",
-              transition: "opacity 0.12s, color 0.12s",
-            }}
-            onMouseEnter={(e) => { if (!copied) e.currentTarget.style.color = "var(--accent)"; }}
-            onMouseLeave={(e) => { if (!copied) e.currentTarget.style.color = "var(--text-dim)"; }}
-          >
-            {copied ? (
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                <polyline points="20 6 9 17 4 12" />
-              </svg>
-            ) : (
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
-                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
-              </svg>
-            )}
-             {copied ? t("i18n.copied") : t("i18n.copy")}
-          </button>
-        )}
-        {time && !isStreaming && (
-          <span style={{ fontSize: 10, color: "var(--text-dim)", marginLeft: "auto" }}>{time}</span>
-        )}
-      </div>
+      <MessageReceipt
+        modelLabel={modelLabel}
+        writtenFiles={writtenFiles}
+        onOpenFile={onOpenFile}
+        turnDurationMs={isStreaming ? undefined : turnDurationMs}
+        usage={isStreaming ? undefined : message.usage}
+      />
     </div>
   );
 }
@@ -1088,28 +1035,29 @@ export function ThinkingBlock({ block, duration, sessionId, entryId, blockIndex 
   }, [expanded, block.deferred, content, sessionId, entryId, blockIndex]);
 
   return (
-    <div style={{
+    <div className="chat-thinking-card" style={{
       display: "flex", alignItems: "flex-start", gap: 6, minWidth: 0,
-      border: "1px solid var(--border)",
-      borderRadius: 7,
-      padding: "6px 10px",
-      background: "var(--bg)",
+      border: "none",
+      borderLeft: "2px solid color-mix(in srgb, var(--text) 28%, transparent)",
+      borderRadius: 0,
+      padding: "2px 0 2px 8px",
+      background: "transparent",
       fontFamily: "var(--font-mono)",
-      fontSize: "calc(11px + var(--chat-font-size-offset, 0px))",
+      fontSize: "calc(12px + var(--chat-font-size-offset, 0px))",
       lineHeight: 1.5,
     }}>
       <button
         type="button"
+        className="chat-thinking-toggle"
         aria-expanded={expanded}
         aria-label={`${t("i18n.thinking")}${preview ? `: ${preview}` : ""}`}
         title={t("i18n.thinking")}
         onClick={() => setExpanded((v) => !v)}
         style={{
-          display: "inline-flex",
+          display: "flex",
           alignItems: "center",
           gap: 6,
-          width: expanded ? 14 : "100%",
-          flexShrink: expanded ? 0 : 1,
+          flex: 1,
           minWidth: 0,
           minHeight: "1.5em",
           padding: 0,
@@ -1121,15 +1069,17 @@ export function ThinkingBlock({ block, duration, sessionId, entryId, blockIndex 
           textAlign: "left",
         }}
       >
-        <ThinkingIcon active={expanded} />
+        <span className="chat-step-marker" aria-hidden="true">▶</span>
+        <span className="chat-thinking-label">{t("i18n.thinking")}</span>
         {!expanded && (
-          <span style={{ minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+          <span className="chat-thinking-preview" style={{ minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
             {preview ? <ReactMarkdown allowedElements={[]} unwrapDisallowed skipHtml>{preview}</ReactMarkdown> : "..."}
           </span>
         )}
       </button>
       {expanded && (
         <div
+          className="chat-thinking-body"
           style={{
             flex: 1,
             minWidth: 0,
@@ -1138,11 +1088,11 @@ export function ThinkingBlock({ block, duration, sessionId, entryId, blockIndex 
             overflowWrap: "anywhere",
           }}
         >
-           {loading ? t("i18n.loadingThinking") : error ?? <ThinkingText text={(block.deferred ? content : block.thinking) ?? ""} />}
+          {loading ? t("i18n.loadingThinking") : error ?? <ThinkingText text={(block.deferred ? content : block.thinking) ?? ""} />}
         </div>
       )}
       {duration !== undefined && (
-        <span style={{ flexShrink: 0, color: "var(--text-dim)", fontVariantNumeric: "tabular-nums" }}>{duration}s</span>
+        <span className="chat-step-duration" style={{ flexShrink: 0, color: "var(--text-dim)", fontVariantNumeric: "tabular-nums" }}>{duration}s</span>
       )}
     </div>
   );
@@ -1214,6 +1164,7 @@ function ToolCallBlock({ block, result, duration, onOpenSubagent }: { block: Too
 
   return (
     <div
+      className={`chat-tool-card ${isError ? "chat-tool-card-error" : "chat-tool-card-success"}`}
       style={{
         borderRadius: 7,
         overflow: "hidden",
@@ -1225,7 +1176,10 @@ function ToolCallBlock({ block, result, duration, onOpenSubagent }: { block: Too
       {/* ── Tool call header ── */}
       <div style={{ display: "flex", alignItems: "stretch", minWidth: 0 }}>
         <button
+          className="chat-tool-toggle"
           onClick={toggleExpanded}
+          aria-expanded={expanded}
+          aria-label={mcpLabel ? `${mcpLabel.server}/${mcpLabel.tool}` : block.toolName}
           style={{
             display: "flex",
             alignItems: "center",
@@ -1242,6 +1196,7 @@ function ToolCallBlock({ block, result, duration, onOpenSubagent }: { block: Too
           }}
         >
           <span
+            className="chat-tool-name"
             title={mcpLabel ? block.toolName : undefined}
             style={{ color: isError ? "#f87171" : "#16a34a", fontFamily: "var(--font-mono)", fontWeight: 600, fontSize: 11, flexShrink: 0 }}
           >
@@ -1252,7 +1207,7 @@ function ToolCallBlock({ block, result, duration, onOpenSubagent }: { block: Too
               </>
             ) : block.toolName}
           </span>
-          <span style={{ color: "var(--text-dim)", fontFamily: "var(--font-mono)", fontSize: 11, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flex: 1, minWidth: 0 }}>
+          <span className="chat-tool-preview" style={{ color: "var(--text-dim)", fontFamily: "var(--font-mono)", fontSize: 11, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flex: 1, minWidth: 0 }}>
             {isStreamingInput
               ? t("chat.generatingToolInput")
               : (patchLabel ?? (codemode ? codemodeScriptPreview(codemode.code) : getToolPreview(block)))}
