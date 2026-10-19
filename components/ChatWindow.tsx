@@ -8,7 +8,7 @@ import { normalizeCustomPanelLines } from "@/lib/ansi";
 import { splitNoticeText } from "@/lib/notice-text";
 import { EXTENSION_DIALOG_BASE_WIDTH, fitExtensionDialogWidth } from "@/lib/extension-dialog-fit";
 import { asBracketedPaste, toTerminalKeyData } from "@/lib/terminal-input";
-import { collapsesProcessDetails, countToolCallBlocks, getDisplayableAssistantBlocks, hasAssistantAnswer, isHiddenCustomMessage, isMessageGroupAnchor, splitFinalAssistantBlocks } from "@/lib/message-display";
+import { collapsesProcessDetails, getDisplayableAssistantBlocks, hasAssistantAnswer, isHiddenCustomMessage, isMessageGroupAnchor, splitFinalAssistantBlocks } from "@/lib/message-display";
 import { extractTurnWrittenFiles, type WrittenFile } from "@/lib/turn-written-files";
 import { getFinalAnswerViews, keepWrittenFiles, type FinalAnswerViews } from "@/lib/turn-views";
 import { formatTurnDuration, getTurnDurationMs } from "@/lib/turn-duration";
@@ -194,21 +194,37 @@ function getUserInputText(message: AgentMessage): string | null {
   return text.length > 0 ? text : null;
 }
 
-function ProcessDetailsGroup({ messageCount, toolCallCount, durationMs, cacheMisses, defaultExpanded = false, reveal = false, children, t }: { messageCount: number; toolCallCount: number; durationMs?: number; cacheMisses?: CacheMissSummary; defaultExpanded?: boolean; reveal?: boolean; children: ReactNode; t: (key: string, params?: Record<string, string | number>) => string }) {
+type ProcessDigest = {
+  steps: number;
+  thoughts: number;
+  reads: number;
+  searches: number;
+  edits: number;
+  commands: number;
+  agents: number;
+};
+
+function ProcessDetailsGroup({ digest, durationMs, cacheMisses, defaultExpanded = false, reveal = false, children, t }: { digest: ProcessDigest; durationMs?: number; cacheMisses?: CacheMissSummary; defaultExpanded?: boolean; reveal?: boolean; children: ReactNode; t: (key: string, params?: Record<string, string | number>) => string }) {
   const [expanded, setExpanded] = useState(defaultExpanded);
   useLayoutEffect(() => {
     if (reveal) setExpanded(true);
   }, [reveal]);
   // The chevron already says this folds; the words stay in the accessible name.
-  const parts = [`${messageCount} ${t(messageCount === 1 ? "chat.message" : "chat.messages")}`];
-  if (toolCallCount > 0) parts.push(`${toolCallCount} ${t(toolCallCount === 1 ? "chat.toolCall" : "chat.toolCalls")}`);
+  const parts = [`${digest.steps} ${t("chat.processSteps")}`];
+  if (digest.thoughts > 0) parts.push(`${digest.thoughts} ${t("chat.processThoughts")}`);
+  if (digest.reads > 0) parts.push(`${digest.reads} ${t("chat.processReads")}`);
+  if (digest.searches > 0) parts.push(`${digest.searches} ${t("chat.processSearches")}`);
+  if (digest.edits > 0) parts.push(`${digest.edits} ${t("chat.processEdits")}`);
+  if (digest.commands > 0) parts.push(`${digest.commands} ${t("chat.processCommands")}`);
+  if (digest.agents > 0) parts.push(`${digest.agents} ${t("chat.processAgents")}`);
   if (durationMs !== undefined) parts.push(t("chat.turnDuration", { time: formatTurnDuration(durationMs) }));
   // Folded, the cache misses inside are added up here (#1265); open, each shows under its step.
   const cacheMissText = cacheMisses && !(expanded || reveal) ? cacheMissSummaryText(t, cacheMisses) : undefined;
 
   return (
-    <div style={{ marginBottom: 14 }}>
+    <div className="chat-process-group" style={{ marginBottom: 14 }}>
       <button
+        className="chat-process-summary"
         type="button"
         aria-expanded={expanded || reveal}
         aria-label={[t("chat.processDetails"), ...parts, ...(cacheMissText ? [cacheMissText] : [])].join(" · ")}
@@ -1229,7 +1245,7 @@ export function ChatWindow({ session, searchTarget, onSearchTargetHandled, initi
                 const processViews: ReactNode[] = [];
                 // processViews also holds the notice lines of steps that show nothing else.
                 let processMessageCount = 0;
-                let processToolCount = 0;
+                const processDigest: ProcessDigest = { steps: 0, thoughts: 0, reads: 0, searches: 0, edits: 0, commands: 0, agents: 0 };
                 let processRefIdx: number | undefined;
                 let revealProcess = false;
 
@@ -1240,6 +1256,7 @@ export function ChatWindow({ session, searchTarget, onSearchTargetHandled, initi
                     if (isHiddenCustomMessage(processMessage)) continue;
                     revealProcess ||= Boolean(pendingSearchScroll && pendingSearchScroll.entryId === entryIds[processIdx]);
                     processMessageCount += 1;
+                    processDigest.steps += 1;
                     processViews.push(renderMessage(processIdx, { attachRef: false, keyPrefix: "process" }));
                     continue;
                   }
@@ -1254,8 +1271,25 @@ export function ChatWindow({ session, searchTarget, onSearchTargetHandled, initi
                     continue;
                   }
                   processRefIdx ??= visibleRefIndexByMessage.get(processIdx);
-                  processToolCount += countToolCallBlocks(blocks);
                   processMessageCount += 1;
+                  for (const block of blocks) {
+                    if (block.type === "thinking") {
+                      processDigest.steps += 1;
+                      processDigest.thoughts += 1;
+                      continue;
+                    }
+                    if (block.type !== "toolCall") {
+                      processDigest.steps += 1;
+                      continue;
+                    }
+                    processDigest.steps += 1;
+                    const name = block.toolName.toLowerCase();
+                    if (name.includes("read")) processDigest.reads += 1;
+                    else if (name.includes("search") || name.includes("grep") || name.includes("glob") || name.includes("find")) processDigest.searches += 1;
+                    else if (name.includes("edit") || name.includes("write") || name.includes("patch") || name.includes("delete")) processDigest.edits += 1;
+                    else if (name.includes("bash") || name.includes("shell") || name === "exec" || name.includes("command")) processDigest.commands += 1;
+                    else if (name.includes("agent") || name.includes("task") || name.includes("subagent")) processDigest.agents += 1;
+                  }
                   revealProcess ||= Boolean(pendingSearchScroll && entryIds[processIdx] === pendingSearchScroll.entryId && (!searchBlock || blocks.includes(searchBlock)));
                   processViews.push(renderMessage(processIdx, {
                     attachRef: false,
@@ -1270,6 +1304,7 @@ export function ChatWindow({ session, searchTarget, onSearchTargetHandled, initi
                 if (processMessageCount === 0) rendered.push(...processViews);
                 else if (processViews.length > 0) {
                   const answered = collapsesProcessDetails(finalAnswerMessage);
+                  if (processDigest.steps === 0) processDigest.steps = processMessageCount;
                   const processCacheMisses = summarizeCacheMisses(messages.slice(userIdx + 1, finalAnswerMessage ? finalAssistantIdx : finalAssistantIdx + 1));
                   rendered.push(
                     <div
@@ -1281,7 +1316,7 @@ export function ChatWindow({ session, searchTarget, onSearchTargetHandled, initi
                           would otherwise stay open once its answer shows up, e.g. when
                           switching between an answered and an unanswered leaf of the same
                           turn. Manual toggles survive every other re-render. */}
-                      <ProcessDetailsGroup key={answered ? "answered" : "unanswered"} messageCount={processMessageCount} toolCallCount={processToolCount} durationMs={turnDurationMs} cacheMisses={processCacheMisses} defaultExpanded={!answered} reveal={revealProcess} t={t}>
+                      <ProcessDetailsGroup key={answered ? "answered" : "unanswered"} digest={processDigest} durationMs={turnDurationMs} cacheMisses={processCacheMisses} defaultExpanded={!answered} reveal={revealProcess} t={t}>
                         {processViews}
                       </ProcessDetailsGroup>
                     </div>,
