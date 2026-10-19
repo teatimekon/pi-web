@@ -14,6 +14,7 @@ import { getAllowedFileRoots, isExistingFilePathAllowed } from "@/lib/file-acces
 import { projectTrustReloadOptions } from "@/lib/project-trust";
 import { rememberProviderModels, withDeferredProviderModels } from "@/lib/deferred-provider-models";
 import { inferRemovedWorktree } from "@/lib/worktree";
+import { createProviderExtensions } from "@/lib/provider-extensions";
 
 export const dynamic = "force-dynamic";
 
@@ -32,6 +33,7 @@ async function loadModels(cwd: string): Promise<ModelsData> {
   const services = await createAgentSessionServices({
     cwd,
     agentDir,
+    resourceLoaderOptions: { extensionFactories: createProviderExtensions() },
     ...(trustReloadOptions ? { resourceLoaderReloadOptions: trustReloadOptions } : {}),
   });
   const modelError = services.modelRuntime.getError();

@@ -74,7 +74,23 @@ test("a removed worktree is listed from the repo it branched from", async () => 
   // Not merely some list: the same one the repo answers, which is what a session that ran
   // without worktree isolation gets.
   assert.deepEqual(fromRemoved.body, fromRepo.body);
-  assert.deepEqual(fromRemoved.body.modelList.map((m) => `${m.provider}:${m.id}`), ["acme:one"], "an empty list would make the comparison say nothing");
+  assert.deepEqual(fromRemoved.body.modelList.map((m) => `${m.provider}:${m.id}`), [
+    "acme:one",
+    "claude-code:claude-opus-4-6",
+    "claude-code:claude-sonnet-4-6",
+    "claude-code:claude-haiku-4-5",
+  ], "an empty list would make the comparison say nothing");
+});
+
+test("the Claude Code CLI models are listed without any credential", async () => {
+  // The provider runs the local `claude` login, so it needs no key in auth.json.
+  const { status, body } = await models(repo);
+  assert.equal(status, 200);
+  assert.deepEqual(
+    body.modelList.filter((m) => m.provider === "claude-code").map((m) => m.id),
+    ["claude-opus-4-6", "claude-sonnet-4-6", "claude-haiku-4-5"],
+  );
+  assert.ok(body.thinkingLevels["claude-code:claude-haiku-4-5"].includes("high"));
 });
 
 test("the repo a removed worktree falls back to is authorized as any other cwd", async () => {

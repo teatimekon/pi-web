@@ -5,6 +5,7 @@ import {
 } from "@earendil-works/pi-coding-agent";
 import { randomUUID } from "node:crypto";
 import { rememberProviderModels } from "./deferred-provider-models";
+import { createProviderExtensions } from "./provider-extensions";
 import { serializeByKey } from "./key-serializer";
 
 /**
@@ -22,7 +23,11 @@ import { serializeByKey } from "./key-serializer";
  */
 export async function createModelRuntimeWithExtensions(): Promise<ModelRuntime> {
   const agentDir = getAgentDir();
-  const services = await createAgentSessionServices({ cwd: agentDir, agentDir });
+  const services = await createAgentSessionServices({
+    cwd: agentDir,
+    agentDir,
+    resourceLoaderOptions: { extensionFactories: createProviderExtensions() },
+  });
   await rememberProviderModels(services.modelRuntime);
   return services.modelRuntime;
 }

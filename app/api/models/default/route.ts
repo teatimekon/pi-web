@@ -13,6 +13,7 @@ import { resolveVisibleModels } from "@/lib/model-scope";
 import { withDeferredProviderModels } from "@/lib/deferred-provider-models";
 import { invalidateModelsCache } from "@/lib/models-cache";
 import { projectTrustReloadOptions } from "@/lib/project-trust";
+import { createProviderExtensions } from "@/lib/provider-extensions";
 
 export const dynamic = "force-dynamic";
 
@@ -78,6 +79,7 @@ export async function PUT(req: Request) {
     const services = await createAgentSessionServices({
       cwd,
       agentDir,
+      resourceLoaderOptions: { extensionFactories: createProviderExtensions() },
       ...(trustReloadOptions ? { resourceLoaderReloadOptions: trustReloadOptions } : {}),
     });
     const { settingsManager } = services;

@@ -17,6 +17,7 @@ import { McpHost, type McpHostOptions } from "./mcp-host";
 import { createPiWebMcpTransportFactory } from "./mcp-transport";
 import { loadPiSdkInternals, type PiSdkInternals, type PiSdkInternalsResult } from "./pi-sdk-internals";
 import { mayReadProjectConfigNow } from "./project-trust";
+import { createProviderExtensions } from "./provider-extensions";
 import { PROJECT_SETTINGS_MAX_BYTES, readRegularFileText } from "./regular-file";
 
 // The built-in extensions the pi CLI prepends from a module the SDK does not
@@ -471,7 +472,11 @@ export async function createPiWebBuiltinExtensions(
     ...(options.mcpHost ? { mcpHost: options.mcpHost } : {}),
   });
   return {
-    extensions: [builtin("codemode", sandbox.available ? createCodemodeExtension() : unavailableExtension), ...extensions],
+    extensions: [
+      ...createProviderExtensions(),
+      builtin("codemode", sandbox.available ? createCodemodeExtension() : unavailableExtension),
+      ...extensions,
+    ],
     mcpHost,
   };
 }
