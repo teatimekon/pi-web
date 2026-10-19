@@ -2903,9 +2903,60 @@ span.token.table {
   min-width: 0;
 }
 
-.chat-process-group {
+.chat-process-group,
+.chat-live-process-group {
   margin-top: 2px;
   min-width: 0;
+}
+
+/* Consecutive assistant entries arrive as separate session messages, but
+   AutoSkill presents that trajectory as one outer block. Keep the message
+   views inside for streaming/state identity, removing repeated card chrome
+   and receipts in both live and finished process groups. */
+.chat-live-process-group,
+.chat-process-group > div {
+  margin-bottom: 8px;
+  padding: 6px 10px 4px;
+  border: 1px solid var(--border);
+  border-left: 2px solid color-mix(in srgb, var(--text) 28%, transparent);
+  border-radius: 8px;
+  background: var(--bg);
+}
+
+.chat-live-process-group .chat-message-assistant,
+.chat-process-group > div .chat-message-assistant {
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  border: none !important;
+  border-radius: 0;
+  background: transparent !important;
+}
+
+.chat-live-process-group .chat-message-assistant .chat-message-header,
+.chat-process-group > div .chat-message-assistant .chat-message-header {
+  display: none;
+}
+
+.chat-live-process-group > :first-child .chat-message-header,
+.chat-process-group > div > :first-child .chat-message-header {
+  display: flex;
+  margin-bottom: 4px;
+}
+
+.chat-live-process-group > * + *,
+.chat-process-group > div > * + * {
+  margin-top: 4px;
+}
+
+.chat-live-process-group .chat-message-assistant .chat-receipt,
+.chat-process-group > div .chat-message-assistant .chat-receipt {
+  display: none;
+}
+
+.chat-live-process-group .chat-message-assistant .chat-assistant-blocks,
+.chat-process-group > div .chat-message-assistant .chat-assistant-blocks {
+  gap: 4px;
 }
 
 .chat-process-summary {
@@ -2941,8 +2992,6 @@ span.token.table {
 
 .chat-process-group > div {
   margin-top: 3px !important;
-  padding-left: 8px;
-  border-left: 1px solid color-mix(in srgb, var(--text) 12%, transparent);
 }
 
 /* AutoSkill transcript Markdown: compact prose, flat inline code, and one

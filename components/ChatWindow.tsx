@@ -1196,6 +1196,36 @@ export function ChatWindow({ session, searchTarget, onSearchTargetHandled, initi
               };
 
               const rendered: ReactNode[] = [];
+              let streamingRenderedInGroup = false;
+              const renderLiveProcessGroup = (startIdx: number, endIdx: number, key: string, includeStreaming = false) => {
+                const views: ReactNode[] = [];
+                for (let renderIdx = startIdx; renderIdx < endIdx; renderIdx++) {
+                  const view = renderMessage(renderIdx);
+                  if (view !== null && view !== false && view !== undefined) views.push(view);
+                }
+                if (includeStreaming) {
+                  streamingRenderedInGroup = true;
+                  views.push(
+                    <StreamingReply
+                      key="streaming-reply"
+                      store={streamingStore}
+                      onCommit={updatePromptAnchor}
+                      toolResults={toolResultsMap}
+                      modelNames={modelNames}
+                      cwd={messageCwd}
+                      onOpenFile={onOpenFile}
+                      onOpenSubagent={onOpenSubagent}
+                    />,
+                  );
+                }
+                if (views.length > 0) {
+                  rendered.push(
+                    <div key={`live-process-group-${key}`} className="chat-live-process-group">
+                      {views}
+                    </div>,
+                  );
+                }
+              };
               for (let idx = 0; idx < messages.length;) {
                 const msg = messages[idx];
                 const hasAnchor = isMessageGroupAnchor(msg);
@@ -1215,19 +1245,17 @@ export function ChatWindow({ session, searchTarget, onSearchTargetHandled, initi
 
                 const finalAssistantIdx = findFinalAssistantIndex(messages, userIdx, endIdx);
 
+                const isLiveTail = (sessionBusy || isStreaming) && endIdx === messages.length && userIdx === lastAnchorIdx;
                 if (finalAssistantIdx === -1) {
-                  for (let renderIdx = groupStartIdx; renderIdx < endIdx; renderIdx++) {
-                    rendered.push(renderMessage(renderIdx));
-                  }
+                  if (hasAnchor) rendered.push(renderMessage(userIdx));
+                  renderLiveProcessGroup(hasAnchor ? userIdx + 1 : groupStartIdx, endIdx, messageKeys[groupStartIdx], isLiveTail && isStreaming && hasStreamingContent);
                   idx = endIdx;
                   continue;
                 }
 
-                const isLiveTail = (sessionBusy || isStreaming) && endIdx === messages.length && userIdx === lastAnchorIdx;
                 if (isLiveTail) {
-                  for (let renderIdx = groupStartIdx; renderIdx < endIdx; renderIdx++) {
-                    rendered.push(renderMessage(renderIdx));
-                  }
+                  if (hasAnchor) rendered.push(renderMessage(userIdx));
+                  renderLiveProcessGroup(hasAnchor ? userIdx + 1 : groupStartIdx, endIdx, messageKeys[groupStartIdx], isStreaming && hasStreamingContent);
                   idx = endIdx;
                   continue;
                 }
@@ -1359,12 +1387,12 @@ export function ChatWindow({ session, searchTarget, onSearchTargetHandled, initi
                     </div>
                   )}
                   {rendered.slice(startIndex)}
+                  {!streamingRenderedInGroup && isStreaming && hasStreamingContent && (
+                    <StreamingReply store={streamingStore} onCommit={updatePromptAnchor} toolResults={toolResultsMap} modelNames={modelNames} cwd={messageCwd} onOpenFile={onOpenFile} onOpenSubagent={onOpenSubagent} />
+                  )}
                 </>
               );
             })()}
-            {isStreaming && hasStreamingContent && (
-              <StreamingReply store={streamingStore} onCommit={updatePromptAnchor} toolResults={toolResultsMap} modelNames={modelNames} cwd={messageCwd} onOpenFile={onOpenFile} onOpenSubagent={onOpenSubagent} />
-            )}
 
             {agentRunning && !hasStreamingContent && (agentPhase || isCompacting) && (
               <div className="break-words py-2 text-[13px] text-text-muted">
