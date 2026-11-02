@@ -35,7 +35,8 @@
     "package.json"
   ],
   "scripts": {
-    "postinstall": "node bin/prepare-terminal.js",
+    "postinstall": "node bin/prepare-terminal.js && node bin/use-local-pi.js --optional",
+    "pi:local": "node bin/use-local-pi.js",
     "dev": "next dev -H 127.0.0.1 -p 30141",
     "dev:lan": "next dev -H 0.0.0.0 -p 30141",
     "build": "next build --webpack",
